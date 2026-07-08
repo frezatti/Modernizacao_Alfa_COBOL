@@ -3,11 +3,11 @@ using WebInterface.DTO;
 
 namespace WebInterface.Service;
 
-public class ClientCobolAPI
+public class ClientCobolApi
 {
     private readonly HttpClient httpClient;
 
-    public ClientCobolAPI(HttpClient httpClient)
+    public ClientCobolApi(HttpClient httpClient)
     {
         this.httpClient = httpClient;
     }
