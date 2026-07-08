@@ -1,6 +1,6 @@
 ﻿namespace WebInterface.Service;
 
-public class ClientCobolAPI
+public class ClientCobolApi
 {
     
 }
