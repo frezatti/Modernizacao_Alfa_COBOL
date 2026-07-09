@@ -1,1 +1,2 @@
-0000|Cliente encontrado.|000001|Maria Silva|62999990000|maria.silva@email.com
+0000|Cliente encontrado.|000001|Maria Silva|62911112222|teste.integracao@alfa.local
+0000|Contato atualizado com sucesso.|000001|Maria Silva|62999998882|teste.integracao@alfa.local

@@ -39,7 +39,7 @@ public class LocalCobolGateway
     public Task<ClientResponseDTO> AtualizarAsync(string id, UpdateClientDTO clientup)
     {
         var request =
-                Fixed("CONSULTAR", 10) +
+                Fixed("ATUALIZAR", 10) +
                 Fixed(id, 6) +
                 Fixed(clientup.Number, 11) +
                 Fixed(clientup.Email, 80);
