@@ -452,20 +452,3 @@ Também atende aos requisitos não funcionais principais:
 
 ---
 
-## Objetivos educacionais
-
-Este projeto demonstra conceitos importantes utilizados na integração entre sistemas legados e aplicações modernas:
-
-- Modernização de sistemas legados;
-- Integração entre COBOL e .NET;
-- Desenvolvimento de APIs REST;
-- Comunicação entre camadas utilizando DTOs;
-- Arquitetura em camadas;
-- Separação de responsabilidades;
-- Testes de integração com xUnit;
-- Comunicação utilizando registros de tamanho fixo;
-- Execução de um programa COBOL a partir de uma aplicação .NET;
-- Conversão entre JSON e estruturas orientadas a COBOL;
-- Desenvolvimento de aplicações modernas em ASP.NET.
-
-A arquitetura implementada permite explicar não apenas o que foi desenvolvido, mas também por que a solução foi organizada dessa forma.
