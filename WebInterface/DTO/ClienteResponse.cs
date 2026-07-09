@@ -2,8 +2,8 @@
 
 public class ClienteResponse
 {
-    public bool Sucesso { get; set; }
-    public string CodigoRetorno { get; set; } = "";
-    public string Mensagem { get; set; } = "";
-    public ClienteDto? Cliente { get; set; }
+    public bool Success { get; set; }
+    public string ResponseCode { get; set; } = "";
+    public string Message { get; set; } = "";
+    public ClienteDto? Client { get; set; }
 }
