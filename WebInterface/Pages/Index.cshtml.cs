@@ -15,10 +15,10 @@ public class IndexModel : PageModel
     }
 
     [BindProperty]
-    public string Codigo { get; set; } = "";
+    public string Id { get; set; } = "";
 
     [BindProperty]
-    public string Telefone { get; set; } = "";
+    public string Number { get; set; } = "";
 
     [BindProperty]
     public string Email { get; set; } = "";
@@ -33,40 +33,40 @@ public class IndexModel : PageModel
 
     public async Task OnPostConsultarAsync()
     {
-        if (string.IsNullOrWhiteSpace(Codigo))
+        if (string.IsNullOrWhiteSpace(Id))
         {
-            Erro = "Informe o código do cliente.";
+            Erro = "Informe o ID do cliente.";
             return;
         }
 
-        Resultado = await clientCobolApi.ConsultarAsync(Codigo);
+        Resultado = await clientCobolApi.ConsultarAsync(Id);
 
-        if (Resultado?.Cliente is not null)
+        if (Resultado?.Client is not null)
         {
-            Telefone = Resultado.Cliente.Telefone;
-            Email = Resultado.Cliente.Email;
+            Number = Resultado.Client.Number;
+            Email = Resultado.Client.Email;
         }
     }
 
     public async Task OnPostAtualizarAsync()
     {
-        if (string.IsNullOrWhiteSpace(Codigo))
+        if (string.IsNullOrWhiteSpace(Id))
         {
-            Erro = "Informe o código do cliente.";
+            Erro = "Informe o ID do cliente.";
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(Telefone) || string.IsNullOrWhiteSpace(Email))
+        if (string.IsNullOrWhiteSpace(Number) || string.IsNullOrWhiteSpace(Email))
         {
             Erro = "Informe telefone e e-mail para atualizar o contato.";
             return;
         }
 
         Resultado = await clientCobolApi.AtualizarContatoAsync(
-            Codigo,
+            Id,
             new AtualizarClienteDTO
             {
-                Telefone = Telefone,
+                Number = Number,
                 Email = Email
             }
         );
