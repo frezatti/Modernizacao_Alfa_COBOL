@@ -1,12 +1,11 @@
 ﻿@page
-@model WebInterface.Pages.IndexModel 
+@model WebInterface.Pages.IndexModel
 @{
-ViewData["Title"] = "Consulta de Clientes";
+    ViewData["Title"] = "Consulta de Clientes";
 
-var possuiResultado = Model.Resultado is not null;
-var statusClass = Model.Resultado?.Sucesso == true ? "success" : "warning";
+    var possuiResultado = Model.Resultado is not null;
+    var statusClass = Model.Resultado?.Success == true ? "success" : "warning";
 }
-
 
 <main class="alfa-page">
     <section class="hero">
@@ -22,7 +21,7 @@ var statusClass = Model.Resultado?.Sucesso == true ? "success" : "warning";
         <aside class="hero-side" aria-label="Fluxo da solução">
             <div class="flow-step">
                 <span class="flow-number">1</span>
-                <span>Atendente informa o código do cliente.</span>
+                <span>Atendente informa o ID do cliente.</span>
             </div>
             <div class="flow-step">
                 <span class="flow-number">2</span>
@@ -44,9 +43,9 @@ var statusClass = Model.Resultado?.Sucesso == true ? "success" : "warning";
                 </div>
 
                 <div class="field-group">
-                    <label asp-for="Codigo">Código do cliente</label>
-                    <input asp-for="Codigo" placeholder="Ex: 000001" maxlength="6" autocomplete="off" />
-                    <div class="field-help">Use o código de negócio do cliente, mantendo os zeros à esquerda.</div>
+                    <label asp-for="Id">ID do cliente</label>
+                    <input asp-for="Id" placeholder="Ex: 000001" maxlength="6" autocomplete="off" />
+                    <div class="field-help">Use o ID do cliente, mantendo os zeros à esquerda.</div>
                 </div>
 
                 <div class="button-row">
@@ -61,13 +60,13 @@ var statusClass = Model.Resultado?.Sucesso == true ? "success" : "warning";
                 </div>
 
                 <div class="field-group">
-                    <label asp-for="Codigo">Código do cliente</label>
-                    <input asp-for="Codigo" placeholder="Ex: 000001" maxlength="6" autocomplete="off" />
+                    <label asp-for="Id">ID do cliente</label>
+                    <input asp-for="Id" placeholder="Ex: 000001" maxlength="6" autocomplete="off" />
                 </div>
 
                 <div class="field-group">
-                    <label asp-for="Telefone">Telefone</label>
-                    <input asp-for="Telefone" placeholder="Ex: 62999990000" maxlength="11" autocomplete="off" />
+                    <label asp-for="Number">Telefone</label>
+                    <input asp-for="Number" placeholder="Ex: 62999990000" maxlength="11" autocomplete="off" />
                     <div class="field-help">Informe apenas números, com DDD.</div>
                 </div>
 
@@ -85,59 +84,54 @@ var statusClass = Model.Resultado?.Sucesso == true ? "success" : "warning";
         <div class="result-area">
             @if (!string.IsNullOrWhiteSpace(Model.Erro))
             {
-            <div class="alert-box">
-                @Model.Erro
-            </div>
+                <div class="alert-box">
+                    @Model.Erro
+                </div>
             }
 
             @if (possuiResultado)
             {
-            <article class="result-card @statusClass">
-                <header class="result-header">
-                    <div>
-                        <h2>@(Model.Resultado!.Sucesso ? "Operação concluída" : "Atenção")</h2>
-                        <p class="message-text">@Model.Resultado.Mensagem</p>
-                    </div>
-                    <span class="return-code">@Model.Resultado.CodigoRetorno</span>
-                </header>
+                <article class="result-card @statusClass">
+                    <header class="result-header">
+                        <div>
+                            <h2>@(Model.Resultado!.Success ? "Operação concluída" : "Atenção")</h2>
+                            <p class="message-text">@Model.Resultado.Message</p>
+                        </div>
+                        <span class="return-code">@Model.Resultado.ResponseCode</span>
+                    </header>
 
-                @if (Model.Resultado.Cliente is not null)
-                {
-                <div class="data-grid">
-                    <div class="data-item">
-                        <div class="data-label">ID interno</div>
-                        <div class="data-value">@(Model.Resultado.Cliente.Id?.ToString() ?? "-")</div>
-                    </div>
+                    @if (Model.Resultado.Client is not null)
+                    {
+                        <div class="data-grid">
+                            <div class="data-item">
+                                <div class="data-label">ID</div>
+                                <div class="data-value">@Model.Resultado.Client.Id</div>
+                            </div>
 
-                    <div class="data-item">
-                        <div class="data-label">Código</div>
-                        <div class="data-value">@Model.Resultado.Cliente.Codigo</div>
-                    </div>
+                            <div class="data-item">
+                                <div class="data-label">Nome</div>
+                                <div class="data-value">@Model.Resultado.Client.Name</div>
+                            </div>
 
-                    <div class="data-item">
-                        <div class="data-label">Nome</div>
-                        <div class="data-value">@Model.Resultado.Cliente.Nome</div>
-                    </div>
+                            <div class="data-item">
+                                <div class="data-label">Telefone</div>
+                                <div class="data-value">@Model.Resultado.Client.Number</div>
+                            </div>
 
-                    <div class="data-item">
-                        <div class="data-label">Telefone</div>
-                        <div class="data-value">@Model.Resultado.Cliente.Telefone</div>
-                    </div>
-
-                    <div class="data-item" style="grid-column: 1 / -1;">
-                        <div class="data-label">E-mail</div>
-                        <div class="data-value">@Model.Resultado.Cliente.Email</div>
-                    </div>
-                </div>
-                }
-            </article>
+                            <div class="data-item" style="grid-column: 1 / -1;">
+                                <div class="data-label">E-mail</div>
+                                <div class="data-value">@Model.Resultado.Client.Email</div>
+                            </div>
+                        </div>
+                    }
+                </article>
             }
             else
             {
-            <div class="empty-state">
-                <strong>Nenhuma operação realizada ainda</strong>
-                <span>Consulte um cliente ou atualize os dados de contato para visualizar o retorno do proxy.</span>
-            </div>
+                <div class="empty-state">
+                    <strong>Nenhuma operação realizada ainda</strong>
+                    <span>Consulte um cliente ou atualize os dados de contato para visualizar o retorno do proxy.</span>
+                </div>
             }
         </div>
     </section>
