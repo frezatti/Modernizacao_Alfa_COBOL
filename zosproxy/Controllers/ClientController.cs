@@ -1,24 +1,56 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using zosproxy.DTO;
+using zosproxy.Service;
 
 namespace zosproxy.Controllers;
 
 [ApiController]
-[Route("zos/client")]
-public class ClientController : Controller
+[Route("api/clientes")]
+public class ClientesController : ControllerBase
 {
-    [AllowAnonymous]
-    [HttpGet("zos/client/fetch/{id:int}")]
-    public async Task<ClientDTO> GetClient()
+    private readonly LocalCobolGateway cobolGateway;
+
+    public ClientesController(LocalCobolGateway cobolGateway)
     {
-        return new ClientDTO();
+        this.cobolGateway = cobolGateway;
     }
-    
-    [AllowAnonymous]
-    [HttpPut("zos/client/put/{id:int}")]
-    public async Task<ClientResponseDTO> UpdateClient([FromBody]ClientDTO client)
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<ClientResponseDTO>> Consultar(string id)
     {
-        return new ClientResponseDTO();
+        var response = await cobolGateway.ConsultarAsync(id);
+
+        return response.ResponseCode switch
+        {
+            "0000" => Ok(response),
+            "0404" => NotFound(response),
+            "0422" => BadRequest(response),
+            _ => StatusCode(500, response)
+        };
+    }
+
+    [HttpPut("{id}/contato")]
+    public async Task<ActionResult<ClientResponseDTO>> AtualizarContato(string id, [FromBody] UpdateClientDTO request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Number) ||
+            string.IsNullOrWhiteSpace(request.Email))
+        {
+            return BadRequest(new ClientResponseDTO
+            {
+                Success = false,
+                ResponseCode = "0422",
+                Message = "Telefone e e-mail sao obrigatorios."
+            });
+        }
+
+        var response = await cobolGateway.AtualizarAsync(id, request);
+
+        return response.ResponseCode switch
+        {
+            "0000" => Ok(response),
+            "0404" => NotFound(response),
+            "0422" => BadRequest(response),
+            _ => StatusCode(500, response)
+        };
     }
 }

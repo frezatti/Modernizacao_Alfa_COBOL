@@ -6,33 +6,33 @@
        FILE-CONTROL.
            SELECT REQUEST-FILE ASSIGN TO "io/request.txt"
                ORGANIZATION IS LINE SEQUENTIAL
-               FILE STATUS IS WS-REG-STATUS.
+               FILE STATUS IS WS-REQ-STATUS.
 
-           SELECT REPOSNSE-FILE ASSIGN TO "io/response.txt"
-               ORGANIZATION IS LINE SEQUENTIAL 
+           SELECT RESPONSE-FILE ASSIGN TO "io/response.txt"
+               ORGANIZATION IS LINE SEQUENTIAL
                FILE STATUS IS WS-RESP-STATUS.
 
-           SELECT CLIENT-FILE ASSIGN TO "data/clientes.dat"
+           SELECT CLIENTE-FILE ASSIGN TO "data/clientes.dat"
                ORGANIZATION IS LINE SEQUENTIAL
                FILE STATUS IS WS-CLI-STATUS.
 
        DATA                                    DIVISION.
-       FILE                                SECTION. 
+       FILE                                SECTION.
 
        FD REQUEST-FILE.
        01 REQUEST-RECORD.
-           05 REQ-ID        PIC 9(10).
-       01 REQ-OPERACAO PIC X(10).
+           05 REQ-OPERACAO PIC X(10).
                88 OP-CONSULTAR VALUE "CONSULTAR ".
                88 OP-ATUALIZAR VALUE "ATUALIZAR ".
+           05 REQ-ID        PIC X(06).
            05 REQ-TELEFONE  PIC X(11).
            05 REQ-EMAIL     PIC X(80).
 
        FD RESPONSE-FILE.
-       01 REPONSE-RECORD    PIC X(250).
+       01 RESPONSE-RECORD PIC X(250).
 
-       FD CLIENT-FILE.
-       01 CLIENT-RECORD     PIC X(250).
+       FD CLIENTE-FILE.
+       01 CLIENTE-LINE     PIC X(250).
 
 
        WORKING-STORAGE                     SECTION.
@@ -42,16 +42,16 @@
        01 WS-CLI-STATUS  PIC XX VALUE SPACES.
 
        01 WS-EOF         PIC X VALUE "N".
-           88 EOF        PIC X VALUE "Y".
-           88 NOT-EOF    PIC X VALUE "N".
-       
-       01 WS-FOUND         PIC X VALUE "N".
-           88 FOUND        PIC X VALUE "Y".
-           88 NOT-FOUND    PIC X VALUE "N".
+           88 EOF          VALUE "Y".
+           88 NOT-EOF      VALUE "N".
 
-       01 WS-SAVE-STATUS   PIC X VALUE "S".
-           88 SAVED        PIC X VALUE "s".
-           88 NOT-SAVED    PIC X VALUE "F".
+       01 WS-FOUND       PIC X VALUE "N".
+           88 FOUND         VALUE "Y".
+           88 NOT-FOUND     VALUE "N".
+
+       01 WS-SAVE-STATUS PIC X VALUE "S".
+           88 SAVED         VALUE "S".
+           88 NOT-SAVED     VALUE "F".
 
 
        01 WS-IDX       PIC 9(03) VALUE 0.
@@ -80,6 +80,7 @@
            PERFORM READ-REQUEST
 
            IF RESP-RETORNO = SPACES
+               PERFORM LOAD-CLIENTES
                EVALUATE TRUE
                    WHEN OP-CONSULTAR
                        PERFORM CONSULTAR-CLIENTE
@@ -87,7 +88,7 @@
                    WHEN OP-ATUALIZAR
                        PERFORM ATUALIZAR-CLIENTE
 
-                   WHEN OTHER 
+                   WHEN OTHER
                        MOVE "0422" TO RESP-RETORNO
                        MOVE "OPERACAO INVALIDA" TO RESP-MENSAGEM
                END-EVALUATE
@@ -101,8 +102,8 @@
            OPEN INPUT REQUEST-FILE
 
            IF WS-REQ-STATUS NOT = "00"
-               MOVE "0500" TO RESP-RETORNO
-               MOVE "Arquivo de request nao encontrado." TO RESP-MENSAGEM
+              MOVE "0500" TO RESP-RETORNO
+              MOVE "Arquivo de request nao encontrado." TO RESP-MENSAGEM
            ELSE
                READ REQUEST-FILE
                    AT END
@@ -119,14 +120,14 @@
            MOVE 0 TO WS-COUNT
            SET NOT-EOF TO TRUE
 
-           OPEN INPUT CLIENTES-FILE
+           OPEN INPUT CLIENTE-FILE
 
            IF WS-CLI-STATUS NOT = "00"
-               MOVE "0500" TO RESP-RETORNO
-               MOVE "Arquivo de clientes nao encontrado." TO RESP-MENSAGEM
+             MOVE "0500" TO RESP-RETORNO
+             MOVE "Arquivo de clientes nao encontrado." TO RESP-MENSAGEM
            ELSE
                PERFORM UNTIL EOF OR WS-COUNT >= 100
-                   READ CLIENTES-FILE
+                   READ CLIENTE-FILE
                        AT END
                            SET EOF TO TRUE
                        NOT AT END
@@ -134,7 +135,7 @@
                            MOVE SPACES TO TB-CLIENTE(WS-COUNT)
 
                            UNSTRING CLIENTE-LINE DELIMITED BY "|"
-                               INTO TB-CODIGO(WS-COUNT)
+                               INTO TB-ID(WS-COUNT)
                                     TB-NOME(WS-COUNT)
                                     TB-TELEFONE(WS-COUNT)
                                     TB-EMAIL(WS-COUNT)
@@ -142,18 +143,18 @@
                    END-READ
                END-PERFORM
 
-               CLOSE CLIENTES-FILE
+               CLOSE CLIENTE-FILE
            END-IF.
 
        FIND-CLIENTE.
-           SET CLIENTE-NOT-FOUND TO TRUE
+           SET NOT-FOUND TO TRUE
            MOVE 0 TO WS-FOUND-IDX
 
            PERFORM VARYING WS-IDX FROM 1 BY 1
-               UNTIL WS-IDX > WS-COUNT OR CLIENTE-FOUND
+               UNTIL WS-IDX > WS-COUNT OR FOUND
 
-               IF TB-CODIGO(WS-IDX) = REQ-CODIGO
-                   SET CLIENTE-FOUND TO TRUE
+               IF TB-ID(WS-IDX) = REQ-ID
+                   SET FOUND TO TRUE
                    MOVE WS-IDX TO WS-FOUND-IDX
                END-IF
 
@@ -162,14 +163,14 @@
        CONSULTAR-CLIENTE.
            PERFORM FIND-CLIENTE
 
-           IF CLIENTE-FOUND
+           IF FOUND
                MOVE "0000" TO RESP-RETORNO
                MOVE "Cliente encontrado." TO RESP-MENSAGEM
                PERFORM MOVE-CLIENTE-TO-RESPONSE
            ELSE
                MOVE "0404" TO RESP-RETORNO
                MOVE "Cliente nao encontrado." TO RESP-MENSAGEM
-               MOVE REQ-CODIGO TO RESP-CODIGO
+               MOVE REQ-ID TO RESP-ID
            END-IF.
 
        ATUALIZAR-CLIENTE.
@@ -178,13 +179,13 @@
            IF RESP-RETORNO = SPACES
                PERFORM FIND-CLIENTE
 
-               IF CLIENTE-FOUND
+               IF FOUND
                    MOVE REQ-TELEFONE TO TB-TELEFONE(WS-FOUND-IDX)
                    MOVE REQ-EMAIL    TO TB-EMAIL(WS-FOUND-IDX)
 
                    PERFORM SAVE-CLIENTES
 
-                   IF SAVE-OK
+                   IF SAVED
                        MOVE "0000" TO RESP-RETORNO
                        MOVE "Contato atualizado com sucesso."
                            TO RESP-MENSAGEM
@@ -193,7 +194,7 @@
                ELSE
                    MOVE "0404" TO RESP-RETORNO
                    MOVE "Cliente nao encontrado." TO RESP-MENSAGEM
-                   MOVE REQ-CODIGO TO RESP-CODIGO
+                   MOVE REQ-ID TO RESP-ID
                END-IF
            END-IF.
 
@@ -221,12 +222,12 @@
            END-IF.
 
        SAVE-CLIENTES.
-           SET SAVE-OK TO TRUE
+           SET SAVED TO TRUE
 
-           OPEN OUTPUT CLIENTES-FILE
+           OPEN OUTPUT CLIENTE-FILE
 
            IF WS-CLI-STATUS NOT = "00"
-               SET SAVE-FAILED TO TRUE
+               SET NOT-SAVED TO TRUE
                MOVE "0500" TO RESP-RETORNO
                MOVE "Erro ao salvar arquivo de clientes."
                    TO RESP-MENSAGEM
@@ -237,7 +238,7 @@
                    MOVE SPACES TO CLIENTE-LINE
 
                    STRING
-                       FUNCTION TRIM(TB-CODIGO(WS-IDX))
+                       FUNCTION TRIM(TB-ID(WS-IDX))
                            DELIMITED BY SIZE
                        "|" DELIMITED BY SIZE
                        FUNCTION TRIM(TB-NOME(WS-IDX))
@@ -254,11 +255,11 @@
                    WRITE CLIENTE-LINE
                END-PERFORM
 
-               CLOSE CLIENTES-FILE
+               CLOSE CLIENTE-FILE
            END-IF.
 
        MOVE-CLIENTE-TO-RESPONSE.
-           MOVE TB-CODIGO(WS-FOUND-IDX)   TO RESP-CODIGO
+           MOVE TB-ID(WS-FOUND-IDX)   TO RESP-ID
            MOVE TB-NOME(WS-FOUND-IDX)     TO RESP-NOME
            MOVE TB-TELEFONE(WS-FOUND-IDX) TO RESP-TELEFONE
            MOVE TB-EMAIL(WS-FOUND-IDX)    TO RESP-EMAIL.
@@ -276,7 +277,7 @@
                    FUNCTION TRIM(RESP-MENSAGEM)
                        DELIMITED BY SIZE
                    "|" DELIMITED BY SIZE
-                   FUNCTION TRIM(RESP-CODIGO)
+                   FUNCTION TRIM(RESP-ID)
                        DELIMITED BY SIZE
                    "|" DELIMITED BY SIZE
                    FUNCTION TRIM(RESP-NOME)

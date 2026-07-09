@@ -1,0 +1,1 @@
+0000|Cliente encontrado.|000001|Maria Silva|62999990000|maria.silva@email.com
